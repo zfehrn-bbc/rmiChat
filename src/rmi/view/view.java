@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.rmi.ConnectException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -26,7 +27,6 @@ public class view extends JPanel {
 	private JButton send;
 	private JMenuBar jcomp3;
 	private JPanel msgs;
-	private static RmiClient CLIENT = new RmiClient();
 
 	public view() {
 		
@@ -81,7 +81,7 @@ public class view extends JPanel {
 		send.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
-					CLIENT.obj.send(jcomp1.getText());
+					CLIENT.getInstance().send(jcomp1.getText());
 					scrollPane.repaint();
 				}
 				catch (IOException e1) {
@@ -94,8 +94,8 @@ public class view extends JPanel {
 		connectItem.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
-					CLIENT.obj = (RmiServerIntf) Naming.lookup("//localhost/RmiServer");
-	        append(CLIENT.obj.getStartMessage());
+					CLIENT.getInstance().connect();
+	        append(CLIENT.getInstance().getServer().getStartMessage());
 	        scrollPane.repaint();
         }
         catch (RemoteException | MalformedURLException | NotBoundException e1) {
@@ -109,10 +109,9 @@ public class view extends JPanel {
 		disconnectItem.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
-					CLIENT.obj = (RmiServerIntf) Naming.lookup("//localhost/RmiServer");
-	        append(CLIENT.obj.getEndMessage());
-	        CLIENT.obj = null;
-	        scrollPane.repaint();
+					append(CLIENT.getInstance().getServer().getEndMessage());
+					CLIENT = null;
+					scrollPane.repaint();
         }
         catch (RemoteException | MalformedURLException | NotBoundException e1) {
 	        // TODO Auto-generated catch block
@@ -134,26 +133,16 @@ public class view extends JPanel {
 		jcomp3.setBounds(0, 0, 385, 30);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ConnectException, MalformedURLException, NotBoundException, RemoteException {
 		JFrame frame = new JFrame("Niggos RMI Chat");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().add(new view());
 		frame.pack();
 		frame.setVisible(true);
 		frame.setResizable(false);
-		while(true) {
-			try {
-	      CLIENT;
-	      scrollPane.repaint();
-      }
-      catch (MalformedURLException | RemoteException | NotBoundException e1) {
-	      // TODO Auto-generated catch block
-	      e1.printStackTrace();
-      }
-		}
 	}
 	
-	public void append(String s) {
+	public static void append(String s) {
 	   try {
 	      Document doc = scrollPane.getDocument();
 	      doc.insertString(doc.getLength(), s, null);
