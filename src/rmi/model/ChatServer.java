@@ -6,8 +6,51 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
 import java.util.*;
 
-public class ChatServer {
-	public static void main(String[] argv) {
+import rmi.view.View;
+
+public class ChatServer extends UnicastRemoteObject implements ChatInterface {
+	
+	/**
+	 * 
+	 */
+	private static final long	serialVersionUID	= 6159674065408397806L;
+	public String								name;
+	public static List<ChatClient>	clients						= new ArrayList<ChatClient>();
+	public View view;
+	
+	public ChatServer() throws RemoteException {
+		super(0);
+	}
+	
+	public String getName() throws RemoteException {
+		return this.name;
+	}
+	
+	public void send(String s) throws RemoteException {
+		System.out.println(s);
+	}
+	
+	@Override
+	public void receive() throws RemoteException {
+	}
+	
+	@Override
+	public void setClient(ChatClient client) throws RemoteException {
+		clients.add(client);
+	}
+	
+	@Override
+	public ChatClient getClient(int id) throws RemoteException {
+		ChatClient ci;
+		ci = clients.get(id);
+		return ci;
+	}
+
+	public List<ChatClient> getClients() {
+		return clients;
+	}
+	
+	public static void main(String[] args) throws Exception {
 		try {
 			System.out.println("RMI server started");
 			try { // special exception handler for registry creation
@@ -18,20 +61,11 @@ public class ChatServer {
 				// do nothing, error means registry already exists
 				System.out.println("java RMI registry already exists.");
 			}
-			Scanner s = new Scanner(System.in);
-			System.out.println("Enter Your name and press Enter:");
-			String name = s.nextLine().trim();
-			Chat server = new Chat(name);
-			Naming.rebind("rmi://localhost/ABC", server);
+			ChatServer server = new ChatServer();
+			Naming.rebind("//localhost/RmiChat", server);
 			System.out.println("[System] Chat Remote Object is ready:");
-			while (true) {
-				String msg = s.nextLine().trim();
-				if (server.getClient() != null) {
-					ChatInterface client = server.getClient();
-					msg = "[" + server.getName() + "] " + msg;
-					client.send(msg);
-				}
-			}
+			
+			Scanner s = new Scanner(System.in);
 		}
 		catch (Exception e) {
 			System.out.println("[System] Server failed: " + e);

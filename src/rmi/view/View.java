@@ -17,18 +17,18 @@ import javax.swing.event.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-import rmi.model.RmiClient;
-import rmi.model.RmiServer;
-import rmi.model.RmiServerIntf;
+import rmi.model.ChatClient;
 
-public class view extends JPanel {
-	private static JTextPane scrollPane;
-	private JTextField jcomp1;
-	private JButton send;
-	private JMenuBar jcomp3;
-	private JPanel msgs;
+public class View extends JPanel {
+	public static JTextPane scrollPane;
+	public static JTextField jcomp1;
+	public JButton send;
+	public JMenuBar jcomp3;
+	public JPanel msgs;
+	private static ChatClient CLIENT = null;
+	private View view = this;
 
-	public view() {
+	public View() {
 		
 		// construct preComponents
 		JMenu fileMenu = new JMenu("File");
@@ -82,10 +82,9 @@ public class view extends JPanel {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
 					CLIENT.getInstance().send(jcomp1.getText());
-					scrollPane.repaint();
-				}
-				catch (IOException e1) {
+				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
+					JOptionPane.showMessageDialog(view, "[System] Nachricht konnte nicht gesendet werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
 					e1.printStackTrace();
 				}
 			}
@@ -93,31 +92,12 @@ public class view extends JPanel {
 		
 		connectItem.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				try {
-					CLIENT.getInstance().connect();
-	        append(CLIENT.getInstance().getServer().getStartMessage());
-	        scrollPane.repaint();
-        }
-        catch (RemoteException | MalformedURLException | NotBoundException e1) {
-	        // TODO Auto-generated catch block
-        	append("Es konnte keine Verbindung zum Server hergestellt werden!\n");
-	        e1.printStackTrace();
-        }
 			}
 		});
 		
 		disconnectItem.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				try {
-					append(CLIENT.getInstance().getServer().getEndMessage());
-					CLIENT = null;
-					scrollPane.repaint();
-        }
-        catch (RemoteException | MalformedURLException | NotBoundException e1) {
-	        // TODO Auto-generated catch block
-        	append("Mit keinem Server verbunden!\n");
-	        e1.printStackTrace();
-        }
+				
 			}
 		});
 		
@@ -132,14 +112,15 @@ public class view extends JPanel {
 		send.setBounds(275, 380, 95, 25);
 		jcomp3.setBounds(0, 0, 385, 30);
 	}
-
-	public static void main(String[] args) throws ConnectException, MalformedURLException, NotBoundException, RemoteException {
-		JFrame frame = new JFrame("Niggos RMI Chat");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().add(new view());
-		frame.pack();
-		frame.setVisible(true);
-		frame.setResizable(false);
+	
+	public static void main(String[] args) {
+		try {
+			ChatClient peter = CLIENT.getInstance();
+			peter.send(jcomp1.getText());
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void append(String s) {
