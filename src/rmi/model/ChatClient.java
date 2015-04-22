@@ -71,8 +71,10 @@ public class ChatClient implements Serializable {
 			frame.setResizable(false);
 			
 			getView().append("Erfolgreich Verbunden!\n");
-			getView().append("Willkommen im Niggo RMI Chat\n -----------------------------------------\n");
+			getView().append("\u001B" + "Willkommen im Niggo RMI Chat\n -----------------------------------------\n");
 			getView().repaint();
+			
+			getView().jcomp1.requestFocusInWindow();
 			
 			Message msg = new Message("[" + getMsgname() + "] ", "got connected\n");
 			server.send(msg);

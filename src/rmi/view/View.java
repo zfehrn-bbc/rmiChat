@@ -5,6 +5,8 @@ package rmi.view;
 import java.awt.Dimension;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -20,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -33,7 +36,7 @@ public class View extends JPanel {
 	private static final long	serialVersionUID	= 7698952923427898502L;
 	public static JTextPane		scrollPane;
 	public static JScrollPane	sp;
-	public static JTextField	jcomp1;
+	public JTextField	jcomp1;
 	public JButton						send;
 	public JMenuBar						jcomp3;
 	public JPanel							msgs;
@@ -98,12 +101,47 @@ public class View extends JPanel {
 		// adjust size and set layout
 		setPreferredSize(new Dimension(370, 410));
 		setLayout(null);
+		
+		// Allow to send with enter
+		jcomp1.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					e.consume();
+					try {
+						CLIENT.getInstance().send(
+								new Message("[" + CLIENT.getInstance().getMsgname() + "] ",
+										jcomp1.getText() + "\n"));
+						jcomp1.setText("");
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						JOptionPane.showMessageDialog(view,
+								"[System] Nachricht konnte nicht gesendet werden!", "Fehler",
+								JOptionPane.ERROR_MESSAGE);
+						e1.printStackTrace();
+					}
+				}
+			}
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 		// Action Listener send button
 		send.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
 					CLIENT.getInstance().send(
-							new Message("[" + CLIENT.getInstance().getMsgname() + "] ", jcomp1.getText() + "\n"));
+							new Message("[" + CLIENT.getInstance().getMsgname() + "] ",
+									jcomp1.getText() + "\n"));
 				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
 					JOptionPane.showMessageDialog(view,
@@ -137,6 +175,9 @@ public class View extends JPanel {
 		send.setBounds(275, 380, 95, 25);
 		jcomp3.setBounds(0, 0, 385, 30);
 		
+		// Focus Textfield on start
+		jcomp1.requestFocusInWindow();
+		
 		Thread thread = new Thread(new Receiver());
 		thread.start();
 		
@@ -153,11 +194,11 @@ public class View extends JPanel {
 	
 	public class Receiver extends Thread {
 		public void run() {
-			while(true) {
+			while (true) {
 				scrollPane.removeAll();
 				List<Message> messages = new ArrayList<Message>();
 				try {
-					messages = CLIENT.getInstance().getServer().returnMessages();					
+					messages = CLIENT.getInstance().getServer().returnMessages();
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
