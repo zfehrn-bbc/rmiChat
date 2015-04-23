@@ -1,5 +1,6 @@
 package rmi.model;
 
+import java.io.Serializable;
 import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.*;
@@ -12,15 +13,18 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 	/**
 	 * 
 	 */
-	public String										name;
-	public static List<Message>						msgs		= new ArrayList<Message>();
+	private static final long	serialVersionUID	= 1L;
+	public String name;
+	public static List<Message>			msgs							= new ArrayList<Message>();
+	public static List<ChatClient>	clients						= new ArrayList<ChatClient>();
 	
-	public ChatServer() throws RemoteException {
+	private ChatServer() throws RemoteException {
 		super(0);
 	}
 	
-	public String getName() throws RemoteException {
-		return this.name;
+	@Override
+	public List<ChatClient> returnClients() throws RemoteException {
+		return this.clients;
 	}
 	
 	@Override
@@ -33,7 +37,8 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 		List<Message> msgarray = this.returnMessages();
 		try {
 			
-			// Mit sleep(int) kann ein Cooldown eingestellt werden. Für besonders Nervige Chatter :)
+			// Mit sleep(int) kann ein Cooldown eingestellt werden. Für besonders
+			// Nervige Chatter :)
 			Thread.sleep(1000);
 			
 		} catch (InterruptedException e) {
@@ -50,6 +55,12 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 		System.out.println(msg.getName() + msg.getMsg());
 	}
 	
+	@Override
+	public void setClient(ChatClient client) throws RemoteException {
+		clients.add(client);
+		System.out.println(client.getInstance().getMsgname());
+	}
+	
 	public static void sendServerMessage(Message msg) throws RemoteException {
 		msgs.add(msg);
 		System.out.println(msg.getName() + msg.getMsg());
@@ -63,19 +74,26 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 				System.out.println("java RMI registry created.");
 			} catch (RemoteException e) {
 				// do nothing, error means registry already exists
-				System.out.println("java RMI registry already exists.");				
+				System.out.println("java RMI registry already exists.");
 			}
+			
 			ChatServer server = new ChatServer();
-			Naming.rebind("rmi://localhost/RmiChat", server);
+			Naming.rebind("//192.168.3.151/RmiChat", server);
 			System.out.println("[System] Chat Remote Object is ready:");
 			
 			Scanner s = new Scanner(System.in);
 			while (true) {
-				Message msg = new Message("[System] " , s.nextLine().trim() + "\n");
+				Message msg = new Message("[System] ", s.nextLine().trim() + "\n");
 				sendServerMessage(msg);
 			}
 		} catch (Exception e) {
 			System.out.println("[System] Server failed: " + e);
 		}
+	}
+
+	@Override
+	public String getName() throws RemoteException {
+		// TODO Auto-generated method stub
+		return this.name;
 	}
 }
