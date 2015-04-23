@@ -175,9 +175,6 @@ public class View extends JPanel {
 		send.setBounds(275, 380, 95, 25);
 		jcomp3.setBounds(0, 0, 385, 30);
 		
-		// Focus Textfield on start
-		jcomp1.requestFocusInWindow();
-		
 		Thread thread = new Thread(new Receiver());
 		thread.run();
 		

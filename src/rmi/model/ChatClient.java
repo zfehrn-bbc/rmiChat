@@ -5,12 +5,14 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import rmi.view.View;
+import rmi.view.View2;
 
 public class ChatClient implements Serializable {
 	
@@ -19,8 +21,8 @@ public class ChatClient implements Serializable {
 	 */
 	private static final long	serialVersionUID	= 6253087201489232951L;
 	private ChatInterface			server;
-	private static View				view							= new View();
-	private static String			msgname = null;
+	private static View2			view							= new View2();
+	private static String			msgname;
 	private Message msg;
 	
 	private static ChatClient instance = null;
@@ -43,25 +45,31 @@ public class ChatClient implements Serializable {
 	public void send(Message msg) throws RemoteException {
 		try {
 			getServer().send(msg);
-		} catch (MalformedURLException | NotBoundException e) {
+		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public static ChatInterface getServer() throws MalformedURLException,
-			RemoteException, NotBoundException {
-		ChatInterface server = (ChatInterface) Naming.lookup("rmi://localhost/RmiChat");
+			RemoteException {
+		ChatInterface server = null;
+		try {
+			server = (ChatInterface) Naming.lookup("//192.168.3.151/RmiChat");
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return server;
 	}
 	
 	public static void main(String[] args) throws Exception {
 		try {
-			
-			
 			ChatClient client = new ChatClient(
 					JOptionPane.showInputDialog(getView(), "Gib deinen Chatnamen ein!", "Willkommen!", JOptionPane.INFORMATION_MESSAGE));
 			ChatInterface server = ChatClient.getServer();
+			User user = new User(getMsgname());
+			server.setClient(client);
 			
 			JFrame frame = new JFrame("Niggos RMI Chat");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -88,11 +96,11 @@ public class ChatClient implements Serializable {
 		}
 	}
 
-	public static View getView() {
+	public static View2 getView() {
 		return view;
 	}
 
-	public static void setView(View view) {
+	public static void setView(View2 view) {
 		ChatClient.view = view;
 	}
 
@@ -100,7 +108,7 @@ public class ChatClient implements Serializable {
 		return msgname;
 	}
 
-	public void setMsgname(String msgname) {
-		this.msgname = msgname;
+	public void setMsgname(String name) {
+		this.msgname = name;
 	}
 }

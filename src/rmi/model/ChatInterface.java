@@ -8,4 +8,6 @@ public interface ChatInterface extends Remote {
 	public void send(Message msg) throws RemoteException;
 	public List<Message> returnMessages() throws RemoteException;
 	public void rmvPrintedMsgs() throws RemoteException;
+	public List<ChatClient> returnClients() throws RemoteException;
+	public void setClient(ChatClient client) throws RemoteException;
 }
