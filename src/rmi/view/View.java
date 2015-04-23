@@ -179,7 +179,7 @@ public class View extends JPanel {
 		jcomp1.requestFocusInWindow();
 		
 		Thread thread = new Thread(new Receiver());
-		thread.start();
+		thread.run();
 		
 	}
 	
