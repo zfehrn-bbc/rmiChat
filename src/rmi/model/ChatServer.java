@@ -66,7 +66,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 				System.out.println("java RMI registry already exists.");				
 			}
 			ChatServer server = new ChatServer();
-			Naming.rebind("//192.168.3.151/RmiChat", server);
+			Naming.rebind("rmi://localhost/RmiChat", server);
 			System.out.println("[System] Chat Remote Object is ready:");
 			
 			Scanner s = new Scanner(System.in);

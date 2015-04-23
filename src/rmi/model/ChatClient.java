@@ -51,7 +51,7 @@ public class ChatClient implements Serializable {
 	
 	public static ChatInterface getServer() throws MalformedURLException,
 			RemoteException, NotBoundException {
-		ChatInterface server = (ChatInterface) Naming.lookup("//192.168.3.151/RmiChat");
+		ChatInterface server = (ChatInterface) Naming.lookup("rmi://localhost/RmiChat");
 		return server;
 	}
 	
@@ -71,7 +71,7 @@ public class ChatClient implements Serializable {
 			frame.setResizable(false);
 			
 			getView().append("Erfolgreich Verbunden!\n");
-			getView().append("\u001B" + "Willkommen im Niggo RMI Chat\n -----------------------------------------\n");
+			getView().append("Willkommen im Niggo RMI Chat\n -----------------------------------------\n");
 			getView().repaint();
 			
 			getView().jcomp1.requestFocusInWindow();
