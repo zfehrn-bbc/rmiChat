@@ -16,14 +16,13 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 	private static final long	serialVersionUID	= 1L;
 	public String name;
 	public static List<Message>			msgs							= new ArrayList<Message>();
-	public static List<ChatClient>	clients						= new ArrayList<ChatClient>();
 	
 	private ChatServer() throws RemoteException {
 		super(0);
 	}
 	
 	@Override
-	public List<ChatClient> returnClients() throws RemoteException {
+	public List<User> returnClients() throws RemoteException {
 		return this.clients;
 	}
 	
@@ -56,9 +55,9 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 	}
 	
 	@Override
-	public void setClient(ChatClient client) throws RemoteException {
+	public void setClient(User client) throws RemoteException {
 		clients.add(client);
-		System.out.println(client.getInstance().getMsgname());
+		System.out.println(client.getName());
 	}
 	
 	public static void sendServerMessage(Message msg) throws RemoteException {
@@ -78,13 +77,14 @@ public class ChatServer extends UnicastRemoteObject implements ChatInterface {
 			}
 			
 			ChatServer server = new ChatServer();
-			Naming.rebind("//192.168.3.151/RmiChat", server);
+			Naming.rebind("//localhost/RmiChat", server);
 			System.out.println("[System] Chat Remote Object is ready:");
 			
 			Scanner s = new Scanner(System.in);
 			while (true) {
 				Message msg = new Message("[System] ", s.nextLine().trim() + "\n");
 				sendServerMessage(msg);
+				System.out.println(clients.toString());
 			}
 		} catch (Exception e) {
 			System.out.println("[System] Server failed: " + e);
