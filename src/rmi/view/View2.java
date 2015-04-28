@@ -1,16 +1,31 @@
-
 package rmi.view;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -59,8 +74,7 @@ public class View2 extends JPanel implements Serializable {
 		menu.add(chatMenu);
 		menu.add(helpMenu);
 		chatters = new JScrollPane(users);
-		chatters
-		    .setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		chatters.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		users.setLayout(new FlowLayout(FlowLayout.LEADING));
 		users.add(new JLabel("Chatters Online: "));
 		// Jscrollpane für Messages
@@ -91,16 +105,11 @@ public class View2 extends JPanel implements Serializable {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					e.consume();
 					try {
-						CLIENT.getInstance().send(
-						    new Message("[" + CLIENT.getInstance().getMsgname() + "] ",
-						        jcomp1.getText() + "\n"));
+						CLIENT.getInstance().send(new Message("[" + CLIENT.getInstance().getMsgname() + "] ", jcomp1.getText() + "\n"));
 						jcomp1.setText("");
-					}
-					catch (RemoteException e1) {
+					} catch (RemoteException e1) {
 						// TODO Auto-generated catch block
-						JOptionPane.showMessageDialog(view,
-						    "[System] Nachricht konnte nicht gesendet werden!", "Fehler",
-						    JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(view, "[System] Nachricht konnte nicht gesendet werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
 						e1.printStackTrace();
 					}
 				}
@@ -120,15 +129,10 @@ public class View2 extends JPanel implements Serializable {
 		send.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				try {
-					CLIENT.getInstance().send(
-					    new Message("[" + CLIENT.getInstance().getMsgname() + "] ",
-					        jcomp1.getText() + "\n"));
-				}
-				catch (RemoteException e1) {
+					CLIENT.getInstance().send(new Message("[" + CLIENT.getInstance().getMsgname() + "] ", jcomp1.getText() + "\n"));
+				} catch (RemoteException e1) {
 					// TODO Auto-generated catch block
-					JOptionPane.showMessageDialog(view,
-					    "[System] Nachricht konnte nicht gesendet werden!", "Fehler",
-					    JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(view, "[System] Nachricht konnte nicht gesendet werden!", "Fehler", JOptionPane.ERROR_MESSAGE);
 					e1.printStackTrace();
 				}
 			}
@@ -139,7 +143,7 @@ public class View2 extends JPanel implements Serializable {
 		});
 		disconnectItem.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				
+
 			}
 		});
 		// add components
@@ -160,101 +164,99 @@ public class View2 extends JPanel implements Serializable {
 		send.setBounds(550, 435, 70, 30);
 		srvmsg.setBounds(10, 465, 610, 25);
 		smileys.setBounds(487, 435, 60, 30);
-		Thread checkChatters = new Thread(new Chatters());
-		checkChatters.start();
-		Thread thread = new Thread(new Receiver());
-		thread.start();
+
+		// Thread checkChatters = new Thread(new Chatters());
+		// checkChatters.start();
+		//
+		// Thread thread = new Thread(new Receiver());
+		// thread.start();
+
+		Prozess prozess = new Prozess();
+		Timer timer = new Timer(true);
+		timer.scheduleAtFixedRate(prozess, 0, 10);
 	}
 
 	public static void append(String s) {
 		try {
 			Document doc = scrollPane.getDocument();
 			doc.insertString(doc.getLength(), s, null);
-		}
-		catch (BadLocationException exc) {
+		} catch (BadLocationException exc) {
 			exc.printStackTrace();
 		}
 	}
 
-	public class Chatters extends Thread {
+	class Prozess extends TimerTask {
+
 		public void run() {
+
+			receiveChatters();
+			receiveMsgs();
+
+		}
+	}
+
+	public void receiveChatters() {
+		while (true) {
 			users.removeAll();
-			List<User> onlineUser = null;
+			users.add(new JLabel("Online Chatters:"));
+			List<User> onlineUser = new ArrayList<User>();
 			try {
-				onlineUser = CLIENT.getInstance().getServer().returnClients();
-			}
-			catch (RemoteException e2) {
-				e2.printStackTrace();
-			}
-			catch (MalformedURLException e) {
+				onlineUser = ChatClient.getServer().returnClients();
+			} catch (RemoteException | MalformedURLException | NotBoundException e1) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e1.printStackTrace();
 			}
-			catch (NotBoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
 			for (User user : onlineUser) {
-				if (!(user.getName().equals(CLIENT.getInstance().getMsgname()))) {
-					JLabel lbltest = new JLabel(user.getName());
-					users.add(lbltest);
+				JLabel lbltest = new JLabel(user.getName());
+				users.add(lbltest);
+				try {
+					ChatClient.getServer().rmvPrintedMsgs();
+				} catch (RemoteException | MalformedURLException | NotBoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-			}
-			users.repaint();
-			try {
-				Thread.sleep(100);
-			}
-			catch (InterruptedException e) {
-				e.printStackTrace();
 			}
 		}
 	}
-	public class Receiver extends Thread {
-		public void run() {
-			while (true) {
-				scrollPane.removeAll();
-				List<Message> messages = null;
+
+	public void receiveMsgs() {
+		while (true) {
+			scrollPane.removeAll();
+			List<Message> messages = null;
+			try {
+				messages = ChatClient.getServer().returnMessages();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NotBoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			for (Message i : messages) {
+				append(i.getName() + i.getMsg());
 				try {
-					messages = CLIENT.getInstance().getServer().returnMessages();
-				}
-				catch (RemoteException e) {
+					ChatClient.getServer().rmvPrintedMsgs();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NotBoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				catch (MalformedURLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				catch (NotBoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				for (Message i : messages) {
-					append(i.getName() + i.getMsg());
-					try {
-						CLIENT.getInstance().getServer().rmvPrintedMsgs();
-					}
-					catch (RemoteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					catch (MalformedURLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					catch (NotBoundException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				scrollPane.repaint();
-				try {
-					Thread.sleep(20);
-				}
-				catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			}
+			scrollPane.repaint();
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
