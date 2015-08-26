@@ -5,14 +5,16 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
- 
+
 public interface ChatInterface extends Remote {
-	
-	public String getName() throws RemoteException;
-	public void send(Message msg) throws RemoteException;
-	public List<Message> returnMessages() throws RemoteException;
-	public void rmvPrintedMsgs() throws RemoteException;
-	public List<User> returnClients() throws RemoteException;
-	public void setClient(User client) throws RemoteException;
-	public void rmvShowedUsers() throws RemoteException;
+
+    void send(Message msg) throws RemoteException;
+
+    List<Message> returnMessages() throws RemoteException;
+
+    void rmvPrintedMsgs() throws RemoteException;
+
+    List<User> returnClients() throws RemoteException;
+
+    void setClient(User client) throws RemoteException;
 }
